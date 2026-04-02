@@ -1,156 +1,138 @@
 # Contributing to MCPHosting CLI
 
-We love contributions! Here's how to get started.
+We welcome contributions from the community! Whether you're fixing a bug, adding a feature, or improving documentation, your help is appreciated.
 
-## Development Setup
+## Getting Started
 
-1. **Clone the repository:**
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/gorlomi-enzo/mcphosting-cli.git
+   git clone https://github.com/YOUR-USERNAME/mcphosting-cli.git
    cd mcphosting-cli
    ```
-
-2. **Install dependencies:**
+3. **Install dependencies:**
    ```bash
    npm install
    ```
-
-3. **Build and test:**
+4. **Build the project:**
    ```bash
    npm run build
+   ```
+5. **Test your changes:**
+   ```bash
+   npm test
    node dist/index.js --help
    ```
 
-## Project Structure
+## Development Setup
 
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- TypeScript
+
+### Project Structure
 ```
-src/
-├── index.ts          # CLI entry point
-├── commands/         # Command implementations
-│   ├── auth.ts       # login/logout/whoami
-│   ├── connect.ts    # connect/disconnect/list
-│   ├── import.ts     # import from other tools
-│   ├── proxy.ts      # STDIO MCP proxy
-│   ├── search.ts     # search/info marketplace
-│   └── servers.ts    # server management (stubs)
-├── lib/              # Shared utilities
-│   ├── api.ts        # MCPHosting API client
-│   ├── clients.ts    # AI client detection/config
-│   ├── config.ts     # Local config management
-│   └── logger.ts     # Pretty console output
-└── types.ts          # TypeScript definitions
+mcphosting-cli/
+├── src/           # TypeScript source code
+├── dist/          # Compiled JavaScript (generated)
+├── assets/        # Documentation assets
+├── tests/         # Test files
+└── README.md      # Main documentation
 ```
 
-## Making Changes
-
-1. **Create a feature branch:**
-   ```bash
-   git checkout -b feature/my-feature
-   ```
-
-2. **Make your changes:**
-   - Follow the existing code style
-   - Add TypeScript types for new code
-   - Test your changes with `npm run build && node dist/index.js`
-
-3. **Test different scenarios:**
-   ```bash
-   # Test search
-   node dist/index.js search github
-   
-   # Test connect (dry run)
-   node dist/index.js connect github --client chatgpt
-   
-   # Test help
-   node dist/index.js --help
-   node dist/index.js connect --help
-   ```
-
-## Adding New Commands
-
-1. **Create the command file** in `src/commands/`
-2. **Export a function** that returns a `Command` object
-3. **Import and add** to `src/index.ts`
-
-Example:
-```typescript
-// src/commands/example.ts
-import { Command } from 'commander';
-import { Logger } from '../lib/logger.js';
-
-export function createExampleCommand(): Command {
-  return new Command('example')
-    .description('Example command')
-    .action(async () => {
-      Logger.success('Hello world!');
-    });
-}
-
-// src/index.ts
-import { createExampleCommand } from './commands/example.js';
-program.addCommand(createExampleCommand());
-```
-
-## Adding New MCP Servers
-
-Static MCP servers are defined in `src/lib/api.ts` in the `getStaticMCPs()` method. Add new entries there for testing until the live API is available.
-
-## Code Style
-
-- Use TypeScript with strict mode
-- Prefer async/await over Promises
-- Use the Logger class for consistent output
-- Add help text and examples to commands
-- Handle errors gracefully with user-friendly messages
-
-## Testing
-
-Currently manual testing. Run these scenarios:
-
+### Building
 ```bash
-# Core functionality
-npm run build
-node dist/index.js search github
-node dist/index.js info notion
-node dist/index.js list
-node dist/index.js connect github --client chatgpt
-
-# Import testing (will show "not found" unless you have Smithery)
-node dist/index.js import --from smithery --dry-run
-
-# Help testing
-node dist/index.js --help
-node dist/index.js connect --help
+npm run build     # One-time build
+npm run dev       # Watch mode for development
 ```
 
-## Submitting Changes
+### Testing Locally
+```bash
+# Test the built CLI
+node dist/index.js connect github --dry-run
 
-1. **Commit your changes:**
-   ```bash
-   git add .
-   git commit -m "Add: your feature description"
-   ```
+# Test with npx (requires publishing to npm)
+npx mcphosting-cli connect github
+```
 
-2. **Push your branch:**
-   ```bash
-   git push origin feature/my-feature
-   ```
+## Contribution Guidelines
 
-3. **Create a Pull Request** on GitHub
+### 1. Code Style
+- Use TypeScript
+- Follow existing code patterns
+- Add JSDoc comments for public functions
+- Use meaningful variable and function names
 
-## Growth Hacking Features
+### 2. Commit Messages
+Use conventional commit format:
+```
+feat: add support for VS Code MCP configuration
+fix: resolve issue with Claude Desktop config path
+docs: update README with new examples
+```
 
-When adding commands, remember to include:
+### 3. Pull Request Process
+1. Create a feature branch: `git checkout -b feature/your-feature-name`
+2. Make your changes with tests
+3. Update documentation if needed
+4. Commit your changes: `git commit -am 'Add some feature'`
+5. Push to your fork: `git push origin feature/your-feature-name`
+6. Submit a Pull Request
 
-- Helpful error messages with next steps
-- Links to GitHub repository in help text
-- Sharing prompts after successful actions
-- SEO-friendly descriptions and keywords
+### 4. What to Contribute
 
-## Need Help?
+**High-Priority Areas:**
+- **New AI Client Support**: Add support for more AI tools (Copilot, Replit, etc.)
+- **MCP Server Discovery**: Improve search and discovery features
+- **Error Handling**: Better error messages and recovery
+- **Testing**: Add unit tests and integration tests
+- **Documentation**: Improve README, add guides
 
-- Open an issue on GitHub
-- Check existing issues for similar problems
-- Join our Discord: https://discord.gg/mcphosting
+**Ideas for Contributors:**
+- Add `--watch` mode to auto-restart clients on config changes
+- Create a TUI (Terminal UI) for browsing MCP servers
+- Add support for MCP server versioning
+- Improve config validation and error messages
+- Add shell completions (bash, zsh, fish)
+- Create VS Code extension for MCP management
 
-Thanks for contributing! 🚀
+## Code of Conduct
+
+### Be Respectful
+- Use welcoming and inclusive language
+- Respect differing viewpoints and experiences
+- Accept constructive criticism gracefully
+- Focus on what's best for the community
+
+### Be Collaborative
+- Help newcomers get started
+- Share knowledge and best practices
+- Review code constructively
+- Celebrate others' contributions
+
+## Getting Help
+
+**Questions or stuck?**
+- 💬 [Join our Discord](https://discord.gg/mcphosting)
+- 🐛 [Open an issue](https://github.com/gorlomi-enzo/mcphosting-cli/issues)
+- 📧 Email: help@mcphosting.com
+
+**Before opening an issue:**
+1. Search existing issues first
+2. Include your OS, Node.js version, and CLI version
+3. Provide steps to reproduce the problem
+4. Include relevant error messages
+
+## Recognition
+
+Contributors will be:
+- Added to the README contributors section
+- Mentioned in release notes
+- Eligible for MCPHosting swag and credits
+
+Thank you for helping make MCPHosting CLI better! 🚀
+
+---
+
+**Happy contributing!** 🎉

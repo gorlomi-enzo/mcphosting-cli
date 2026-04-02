@@ -1,7 +1,7 @@
 # MCPHosting CLI
 
-[![npm version](https://badge.fury.io/js/@mcphosting%2Fcli.svg)](https://www.npmjs.com/package/@mcphosting/cli)
-[![Downloads](https://img.shields.io/npm/dm/@mcphosting/cli.svg)](https://www.npmjs.com/package/@mcphosting/cli)
+[![npm version](https://badge.fury.io/js/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
+[![Downloads](https://img.shields.io/npm/dm/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
 [![GitHub stars](https://img.shields.io/github/stars/gorlomi-enzo/mcphosting-cli.svg)](https://github.com/gorlomi-enzo/mcphosting-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -9,14 +9,17 @@
 
 The easiest way to connect MCP servers to Claude Desktop, ChatGPT, Cursor, VS Code, and other AI clients. One command to rule them all.
 
+![MCPHosting CLI Demo](https://github.com/gorlomi-enzo/mcphosting-cli/raw/main/assets/demo.gif)
+> *Animated demo coming soon - showing one-command MCP server connections*
+
 ## ⚡ Quick Start
 
 ```bash
 # Install globally
-npm install -g @mcphosting/cli
+npm install -g mcphosting-cli
 
 # Or run directly with npx
-npx @mcphosting/cli connect github
+npx mcphosting-cli connect github
 ```
 
 ## 🔗 How to Connect MCP Servers to AI Clients
@@ -27,7 +30,7 @@ Claude Desktop is the most popular way to use MCP servers. Here's how to connect
 
 1. **Install the CLI:**
    ```bash
-   npm install -g @mcphosting/cli
+   npm install -g mcphosting-cli
    ```
 
 2. **Connect an MCP server:**
@@ -47,7 +50,7 @@ If you prefer manual setup, edit `~/Library/Application Support/Claude/claude_de
   "mcpServers": {
     "github": {
       "command": "npx",
-      "args": ["-y", "@mcphosting/cli", "proxy", "https://github.mcphost.dev"],
+      "args": ["-y", "mcphosting-cli", "proxy", "https://github.mcphost.dev"],
       "env": {}
     }
   }
@@ -87,7 +90,7 @@ Cursor IDE supports MCP servers through configuration files:
      "mcpServers": {
        "notion": {
          "command": "npx",
-         "args": ["-y", "@mcphosting/cli", "proxy", "https://notion.mcphost.dev"],
+         "args": ["-y", "mcphosting-cli", "proxy", "https://notion.mcphost.dev"],
          "env": {}
        }
      }
@@ -134,21 +137,34 @@ mcphost whoami                         # Show current user
 | **Stripe** | Payment and customer data | `get_customer`, `list_payments` | `mcphost connect stripe` |
 | **PostgreSQL** | Safe database queries | `query`, `describe_table`, `list_tables` | `mcphost connect postgres` |
 
-## 🚀 MCPHosting CLI vs Smithery CLI
+## 🚀 Why MCPHosting CLI?
 
-| Feature | MCPHosting CLI | Smithery CLI |
-|---------|----------------|--------------|
-| **Auto-detection** | ✅ Detects Claude, Cursor, VS Code | ❌ Manual config |
-| **ChatGPT support** | ✅ Web setup instructions | ❌ Not supported |
-| **Migration** | ✅ `import --from smithery` | ❌ No migration |
-| **Marketplace** | ✅ Search & browse built-in | ❌ Limited discovery |
-| **Growth features** | ✅ Sharing prompts, GitHub stars | ❌ Basic CLI |
-| **Proxy mode** | ✅ Built-in STDIO proxy | ❌ External tools needed |
-| **Multiple clients** | ✅ Connect to all at once | ❌ One at a time |
+### MCPHosting CLI vs Manual Setup
+
+| Task | Manual Setup | MCPHosting CLI | Time Saved |
+|------|-------------|----------------|-----------|
+| **Find MCP servers** | Google, GitHub search | `mcphost search <query>` | ~30 min → 30 sec |
+| **Configure Claude** | Edit JSON files manually | `mcphost connect <server>` | ~10 min → 10 sec |
+| **Configure multiple clients** | Edit 3+ config files | One command updates all | ~30 min → 10 sec |
+| **Setup authentication** | Read docs, configure tokens | Automated prompts | ~20 min → 2 min |
+| **Update server URLs** | Edit JSON, restart clients | `mcphost update <server>` | ~10 min → 10 sec |
+| **Remove servers** | Edit JSON, clean configs | `mcphost disconnect <server>` | ~5 min → 5 sec |
+
+### MCPHosting CLI vs Smithery CLI
+
+| Feature | MCPHosting CLI | Smithery CLI | Manual Setup |
+|---------|----------------|--------------|--------------|
+| **Auto-detection** | ✅ Detects Claude, Cursor, VS Code | ❌ Manual config | ❌ Manual config |
+| **ChatGPT support** | ✅ Web setup instructions | ❌ Not supported | ❌ Complex setup |
+| **Marketplace** | ✅ 250+ servers built-in | ❌ Limited discovery | ❌ No discovery |
+| **Multiple clients** | ✅ Connect to all at once | ❌ One at a time | ❌ One at a time |
+| **Migration path** | ✅ `import --from smithery` | N/A | N/A |
+| **Revenue sharing** | ✅ 80% to creators | ❌ No monetization | N/A |
+| **Hosting included** | ✅ Free tier available | ❌ Self-host only | ❌ Self-host only |
 
 **Migration from Smithery:**
 ```bash
-mcphost import --from smithery
+mcphost import --from smithery  # Seamless migration
 ```
 
 ## 🎯 Supported AI Clients
@@ -167,7 +183,7 @@ mcphost import --from smithery
 ```bash
 mcphost connect github
 # 🎉 Connected! Share with your team:
-# npx @mcphosting/cli connect github
+# npx mcphosting-cli connect github
 # 
 # ⭐ Star us: https://github.com/gorlomi-enzo/mcphosting-cli
 ```
@@ -206,7 +222,7 @@ mcphost list
 1. **URL Resolution:** Slugs like `github` become `https://github.mcphost.dev`
 2. **Client Detection:** Automatically finds Claude Desktop, Cursor, VS Code configs
 3. **Config Update:** Adds MCP server entry to each client's config file
-4. **Proxy Mode:** Uses `npx @mcphosting/cli proxy <url>` for STDIO communication
+4. **Proxy Mode:** Uses `npx mcphosting-cli proxy <url>` for STDIO communication
 
 **Config Format:**
 ```json
@@ -214,7 +230,7 @@ mcphost list
   "mcpServers": {
     "github": {
       "command": "npx",
-      "args": ["-y", "@mcphosting/cli", "proxy", "https://github.mcphost.dev"],
+      "args": ["-y", "mcphosting-cli", "proxy", "https://github.mcphost.dev"],
       "env": {}
     }
   }
