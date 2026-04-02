@@ -1,0 +1,56 @@
+{
+  "name": "@mcphosting/cli",
+  "version": "0.1.0",
+  "description": "Connect AI agents to MCP servers. Browse, install, and manage Model Context Protocol servers.",
+  "bin": {
+    "mcphost": "./dist/index.js"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node dist/index.js --help"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "chatgpt", 
+    "cursor",
+    "ai-agents",
+    "mcp-server",
+    "mcp-hosting",
+    "smithery",
+    "github-mcp",
+    "slack-mcp",
+    "notion-mcp", 
+    "stripe-mcp",
+    "mcp-marketplace",
+    "ai-tools",
+    "llm-tools"
+  ],
+  "author": "MCPHosting",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "conf": "^12.0.0",
+    "open": "^10.0.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
