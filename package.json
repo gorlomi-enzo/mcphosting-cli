@@ -1,6 +1,6 @@
 {
   "name": "mcphosting-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Connect AI agents to MCP servers. Browse, install, and manage Model Context Protocol servers.",
   "bin": {
     "mcphost": "dist/index.js"

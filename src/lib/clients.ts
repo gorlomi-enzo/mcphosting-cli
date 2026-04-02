@@ -66,7 +66,7 @@ export class ClientManager {
 
     const serverEntry: MCPServerEntry = {
       command: 'npx',
-      args: ['-y', '@mcphosting/cli', 'proxy', url],
+      args: ['-y', 'mcphosting-cli', 'proxy', url],
       env: {}
     };
 

@@ -93,7 +93,7 @@ async function forwardMessage(url: string, message: string, quiet: boolean): Pro
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': '@mcphosting/cli-proxy'
+        'User-Agent': 'mcphosting-cli-proxy'
       },
       body: message
     });

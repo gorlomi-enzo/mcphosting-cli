@@ -88,7 +88,7 @@ export function createConnectCommands(): Command {
 
         // Growth hacking: show sharing message after successful connection
         console.log('\n' + chalk.green('🎉 Connected! Share with your team:'));
-        console.log(chalk.cyan(`npx @mcphosting/cli connect ${urlOrSlug}`));
+        console.log(chalk.cyan(`npx mcphosting-cli connect ${urlOrSlug}`));
         console.log('\n' + chalk.yellow('⭐ Star us: ') + chalk.blue('https://github.com/gorlomi-enzo/mcphosting-cli'));
         console.log('');
 

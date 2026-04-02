@@ -134,7 +134,7 @@ async function importFromSmitery(options: { dryRun?: boolean; configPath?: strin
         let url = serverConfig.url;
         if (!url) {
           // If no URL but has command, try to extract from args
-          if (serverConfig.command === 'npx' && serverConfig.args?.[0] === '@mcphosting/cli') {
+          if (serverConfig.command === 'npx' && serverConfig.args?.[0] === 'mcphosting-cli') {
             url = serverConfig.args[2]; // Should be the URL after 'proxy'
           } else {
             // Default to mcphost.dev format
@@ -196,7 +196,7 @@ async function importFromSmitery(options: { dryRun?: boolean; configPath?: strin
     
     // Growth hacking message
     console.log('\n' + chalk.green('🎉 Welcome to MCPHosting! Share with your team:'));
-    console.log(chalk.cyan('npx @mcphosting/cli import --from smithery'));
+    console.log(chalk.cyan('npx mcphosting-cli import --from smithery'));
     console.log('\n' + chalk.yellow('⭐ Star us: ') + chalk.blue('https://github.com/gorlomi-enzo/mcphosting-cli'));
     console.log('');
 
