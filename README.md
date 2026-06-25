@@ -1,7 +1,7 @@
 # MCPHosting CLI
 
-[![npm version](https://badge.fury.io/js/@mcphosting/cli.svg)](https://www.npmjs.com/package/@mcphosting/cli)
-[![Downloads](https://img.shields.io/npm/dm/@mcphosting/cli.svg)](https://www.npmjs.com/package/@mcphosting/cli)
+[![npm version](https://badge.fury.io/js/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
+[![Downloads](https://img.shields.io/npm/dm/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Deploy MCP servers in 30 seconds.** The easiest way to host, connect, and manage Model Context Protocol servers.
@@ -9,7 +9,7 @@
 ## ⚡ Quick Start
 
 ```bash
-npm install -g @mcphosting/cli
+npm install -g mcphosting-cli
 
 mcphosting login
 mcphosting deploy
@@ -134,7 +134,7 @@ mcphosting import --from smithery   # Import from Smithery
 1. **`mcphosting login`** — Authenticates with MCPHosting.com
 2. **`mcphosting deploy`** — Detects your MCP server, deploys to cloud
 3. **`mcphosting connect`** — Configures your AI clients to use the server
-4. **Proxy mode** — `npx @mcphosting/cli proxy <url>` bridges STDIO ↔ HTTP
+4. **Proxy mode** — `npx mcphosting-cli proxy <url>` bridges STDIO ↔ HTTP
 
 Your deployed server gets a URL like `https://your-server.mcphost.dev` that works with any MCP client.
 
@@ -149,7 +149,7 @@ Your deployed server gets a URL like `https://your-server.mcphost.dev` that work
 
 - [Documentation](https://mcphosting.com/docs)
 - [Dashboard](https://mcphosting.com/dashboard)
-- [GitHub](https://github.com/gorlomi-enzo/@mcphosting/cli)
+- [GitHub](https://github.com/gorlomi-enzo/mcphosting-cli)
 
 ## License
 
