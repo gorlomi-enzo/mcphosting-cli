@@ -1,130 +1,134 @@
-import { Command } from 'commander';
-import { createAuthCommands, createLegacyAuthCommands } from './commands/auth.js';
-import { 
-  createConnectCommands, 
-  createDisconnectCommand, 
-  createListCommand 
-} from './commands/connect.js';
-import { createImportCommand } from './commands/import.js';
-import { createProxyCommand } from './commands/proxy.js';
-import { createSearchCommand, createInfoCommand } from './commands/search.js';
-import { 
-  createServersCommand, 
-  createKeysCommand, 
-  createPublishCommand 
-} from './commands/servers.js';
-import { Logger } from './lib/logger.js';
-import chalk from 'chalk';
+import { Command } from 'commander'
+import chalk from 'chalk'
 
-const program = new Command();
+import { createLoginCommand } from './commands/login.js'
+import { createLogoutCommand } from './commands/logout.js'
+import { createDeployCommand } from './commands/deploy.js'
+import { createConnectCommand, createDisconnectCommand } from './commands/connect.js'
+import { createListCommand } from './commands/list.js'
+import { createStatusCommand } from './commands/status.js'
+import { createLogsCommand } from './commands/logs.js'
+import { createEnvCommand } from './commands/env.js'
+import { createKeysCommand } from './commands/keys.js'
+import { createSearchCommand, createInfoCommand } from './commands/search.js'
+import { createImportCommand } from './commands/import.js'
+import { createProxyCommand } from './commands/proxy.js'
+import { Logger } from './lib/logger.js'
+
+const program = new Command()
 
 program
-  .name('mcphost')
-  .description('Connect AI agents to MCP servers. Browse, install, and manage Model Context Protocol servers.')
-  .version('0.1.0')
+  .name('mcphosting')
+  .description('Deploy and manage MCP servers from the terminal')
+  .version('1.0.0')
   .configureOutput({
     outputError: (str, write) => {
-      // Ensure errors go to stderr
-      write(chalk.red(str));
+      write(chalk.red(str))
     }
-  });
+  })
 
-// Add the main commands
-program.addCommand(createConnectCommands());
-program.addCommand(createDisconnectCommand());
-program.addCommand(createListCommand());
-program.addCommand(createImportCommand());
-program.addCommand(createProxyCommand());
-program.addCommand(createSearchCommand());
-program.addCommand(createInfoCommand());
+// --- Core Commands ---
+program.addCommand(createLoginCommand())
+program.addCommand(createLogoutCommand())
+program.addCommand(createDeployCommand())
+program.addCommand(createConnectCommand())
+program.addCommand(createDisconnectCommand())
+program.addCommand(createListCommand())
+program.addCommand(createStatusCommand())
+program.addCommand(createLogsCommand())
+program.addCommand(createEnvCommand())
+program.addCommand(createKeysCommand())
 
-// Add server management commands
-program.addCommand(createServersCommand());
-program.addCommand(createKeysCommand());
-program.addCommand(createPublishCommand());
+// --- Marketplace ---
+program.addCommand(createSearchCommand())
+program.addCommand(createInfoCommand())
 
-// Add auth commands both as subcommands and top-level (backwards compatibility)
-program.addCommand(createAuthCommands());
-const [login, logout, whoami] = createLegacyAuthCommands();
-program.addCommand(login);
-program.addCommand(logout);
-program.addCommand(whoami);
+// --- Utilities ---
+program.addCommand(createImportCommand())
+program.addCommand(createProxyCommand())
+
+// --- Whoami (convenience) ---
+program
+  .command('whoami')
+  .description('Show current logged-in user')
+  .action(async () => {
+    const { Config } = await import('./lib/config.js')
+    const config = new Config()
+    const user = config.user
+    const token = config.token
+
+    if (!token) {
+      Logger.info('Not logged in.')
+      Logger.dim(`Run ${chalk.cyan('mcphosting login')} to authenticate.`)
+      return
+    }
+
+    if (user) {
+      Logger.success(`Logged in as ${chalk.bold(user.email)}${user.org ? ` (${user.org})` : ''}`)
+    } else {
+      Logger.info('Authenticated (user info unavailable)')
+    }
+  })
 
 // Custom help
 program.configureHelp({
   subcommandTerm: (cmd) => chalk.cyan(cmd.name()),
-  commandUsage: (cmd) => {
-    const usage = cmd.usage();
-    return chalk.yellow(usage);
-  },
-  commandDescription: (cmd) => {
-    return chalk.dim(cmd.description());
-  }
-});
+  commandUsage: (cmd) => chalk.yellow(cmd.usage()),
+  commandDescription: (cmd) => chalk.dim(cmd.description()),
+})
 
-// Add custom help examples
 program.addHelpText('after', `
+${chalk.bold('Quick Start:')}
+  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login')}                         ${chalk.dim('Authenticate')}
+  ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy')}                        ${chalk.dim('Deploy MCP server from current dir')}
+  ${chalk.dim('3.')} ${chalk.cyan('mcphosting deploy --github <url>')}         ${chalk.dim('Deploy from GitHub')}
+
 ${chalk.bold('Examples:')}
-  ${chalk.cyan('mcphost connect github')}                    ${chalk.dim('Connect to GitHub MCP server')}
-  ${chalk.cyan('mcphost connect https://my-mcp.example.com')}  ${chalk.dim('Connect to custom MCP server')}
-  ${chalk.cyan('mcphost connect slack --client claude')}      ${chalk.dim('Connect Slack MCP only to Claude')}
-  ${chalk.cyan('mcphost list')}                             ${chalk.dim('List all connected MCP servers')}
-  ${chalk.cyan('mcphost search github')}                    ${chalk.dim('Search marketplace for MCP servers')}
-  ${chalk.cyan('mcphost info notion')}                      ${chalk.dim('Get details about Notion MCP')}
-  ${chalk.cyan('mcphost import --from smithery')}           ${chalk.dim('Import connections from Smithery')}
-  ${chalk.cyan('mcphost disconnect github')}               ${chalk.dim('Remove GitHub MCP connection')}
+  ${chalk.cyan('mcphosting deploy')}                              ${chalk.dim('Deploy current directory')}
+  ${chalk.cyan('mcphosting deploy --github https://github.com/user/my-mcp')}
+  ${chalk.cyan('mcphosting connect github')}                      ${chalk.dim('Connect GitHub MCP to AI clients')}
+  ${chalk.cyan('mcphosting list')}                                ${chalk.dim('List all servers')}
+  ${chalk.cyan('mcphosting status my-server')}                    ${chalk.dim('Check server status')}
+  ${chalk.cyan('mcphosting logs my-server')}                      ${chalk.dim('View server logs')}
+  ${chalk.cyan('mcphosting env set my-server API_KEY=sk-abc')}    ${chalk.dim('Set env var')}
+  ${chalk.cyan('mcphosting keys create "Production"')}            ${chalk.dim('Create API key')}
+  ${chalk.cyan('mcphosting search notion')}                       ${chalk.dim('Search marketplace')}
+  ${chalk.cyan('mcphosting import --from smithery')}              ${chalk.dim('Import from Smithery')}
 
 ${chalk.bold('Supported AI Clients:')}
-  • ${chalk.green('Claude Desktop')} - Auto-configured via claude_desktop_config.json
-  • ${chalk.green('Cursor')} - Auto-configured via .cursor/mcp.json  
-  • ${chalk.green('VS Code')} - Configured via .vscode/mcp.json
-  • ${chalk.green('OpenClaw')} - Auto-configured via ~/.openclaw/mcp.json
-  • ${chalk.green('ChatGPT')} - Manual setup with web instructions
+  • ${chalk.green('Claude Desktop')}  • ${chalk.green('Cursor')}  • ${chalk.green('VS Code')}  • ${chalk.green('OpenClaw')}  • ${chalk.green('ChatGPT')}
 
-${chalk.bold('Get Started:')}
-  ${chalk.dim('1.')} ${chalk.cyan('mcphost search <topic>')}     ${chalk.dim('Find MCP servers')}
-  ${chalk.dim('2.')} ${chalk.cyan('mcphost connect <slug>')}     ${chalk.dim('Connect to your AI clients')}
-  ${chalk.dim('3.')} ${chalk.cyan('mcphost list')}              ${chalk.dim('View your connections')}
-
-${chalk.yellow('⭐ Star us:')} ${chalk.blue('https://github.com/gorlomi-enzo/mcphosting-cli')}
 ${chalk.yellow('📚 Docs:')} ${chalk.blue('https://mcphosting.com/docs')}
-`);
+${chalk.yellow('⭐ GitHub:')} ${chalk.blue('https://github.com/gorlomi-enzo/mcphosting-cli')}
+`)
 
 // Global error handling
 process.on('uncaughtException', (error) => {
-  Logger.error(`Uncaught error: ${error.message}`);
-  if (process.env.DEBUG) {
-    console.error(error.stack);
-  }
-  process.exit(1);
-});
+  Logger.error(`Unexpected error: ${error.message}`)
+  if (process.env.DEBUG) console.error(error.stack)
+  process.exit(1)
+})
 
 process.on('unhandledRejection', (reason) => {
-  Logger.error(`Unhandled rejection: ${reason}`);
-  if (process.env.DEBUG) {
-    console.error(reason);
-  }
-  process.exit(1);
-});
+  Logger.error(`Unhandled rejection: ${reason}`)
+  if (process.env.DEBUG) console.error(reason)
+  process.exit(1)
+})
 
-// Handle Ctrl+C gracefully
 process.on('SIGINT', () => {
-  console.log('\n');
-  Logger.info('Goodbye! 👋');
-  process.exit(0);
-});
+  console.log('\n')
+  Logger.info('Goodbye! 👋')
+  process.exit(0)
+})
 
-// Parse CLI arguments
 async function main() {
   try {
-    await program.parseAsync();
-  } catch (error) {
-    Logger.error(`Command failed: ${error}`);
-    if (process.env.DEBUG) {
-      console.error(error);
-    }
-    process.exit(1);
+    await program.parseAsync()
+  } catch (error: any) {
+    Logger.error(`Command failed: ${error.message}`)
+    if (process.env.DEBUG) console.error(error)
+    process.exit(1)
   }
 }
 
-main();
+main()

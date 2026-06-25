@@ -1,0 +1,183 @@
+import { Command } from 'commander'
+import { createServer } from 'http'
+import open from 'open'
+import { Config } from '../lib/config.js'
+import { MCPHostingAPI } from '../lib/api.js'
+import { Logger } from '../lib/logger.js'
+import chalk from 'chalk'
+import * as readline from 'readline'
+
+function prompt(question: string, hidden: boolean = false): Promise<string> {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    })
+
+    if (hidden) {
+      // For password input, mute output
+      const originalWrite = process.stdout.write.bind(process.stdout)
+      process.stdout.write = ((str: string | Uint8Array) => {
+        if (typeof str === 'string' && str !== question && str !== '\n' && str !== '\r\n') {
+          return originalWrite('*')
+        }
+        return originalWrite(str)
+      }) as typeof process.stdout.write
+
+      rl.question(question, (answer) => {
+        process.stdout.write = originalWrite
+        console.log() // New line after hidden input
+        rl.close()
+        resolve(answer)
+      })
+    } else {
+      rl.question(question, (answer) => {
+        rl.close()
+        resolve(answer)
+      })
+    }
+  })
+}
+
+export function createLoginCommand(): Command {
+  return new Command('login')
+    .description('Authenticate with MCPHosting')
+    .option('--email <email>', 'Email address')
+    .option('--token <token>', 'Provide API token directly')
+    .option('--browser', 'Use browser-based login (default if no email provided)')
+    .action(async (options) => {
+      const config = new Config()
+
+      // Direct token auth
+      if (options.token) {
+        config.token = options.token
+        const api = new MCPHostingAPI(options.token)
+        const user = await api.whoami()
+
+        if (user) {
+          config.user = user
+          Logger.success(`Logged in as ${chalk.bold(user.email)}`)
+        } else {
+          Logger.warning('Token saved, but could not verify identity.')
+        }
+        return
+      }
+
+      // Email/password login
+      if (options.email || !process.stdout.isTTY) {
+        const email = options.email || await prompt(chalk.cyan('Email: '))
+        const password = await prompt(chalk.cyan('Password: '), true)
+
+        if (!email || !password) {
+          Logger.error('Email and password are required.')
+          process.exit(1)
+        }
+
+        const spinner = Logger.spinner('Logging in...')
+
+        try {
+          const api = new MCPHostingAPI()
+          const result = await api.login(email, password)
+
+          config.token = result.token
+          config.user = result.user
+
+          spinner.succeed(`Logged in as ${chalk.bold(result.user.email)}`)
+          console.log('')
+          Logger.info(`Token stored in ${chalk.dim('~/.config/mcphosting/')}`)
+          Logger.info(`Run ${chalk.cyan('mcphosting deploy')} to deploy your first MCP server!`)
+        } catch (error: any) {
+          spinner.fail('Login failed')
+          Logger.error(error.message || 'Invalid email or password.')
+          process.exit(1)
+        }
+        return
+      }
+
+      // Browser-based OAuth flow (default for TTY)
+      const spinner = Logger.spinner('Opening browser for login...')
+      let server: any
+
+      try {
+        const authPromise = new Promise<string>((resolve, reject) => {
+          server = createServer((req, res) => {
+            if (req.url?.startsWith('/callback')) {
+              const url = new URL(req.url, 'http://localhost')
+              const token = url.searchParams.get('token')
+
+              if (token) {
+                res.writeHead(200, { 'Content-Type': 'text/html' })
+                res.end(`
+                  <html>
+                    <body style="font-family: system-ui; text-align: center; padding: 50px; background: #0a0a0a; color: #fff;">
+                      <h2>✅ Login Successful!</h2>
+                      <p style="color: #888;">You can close this window and return to your terminal.</p>
+                    </body>
+                  </html>
+                `)
+                resolve(token)
+              } else {
+                res.writeHead(400, { 'Content-Type': 'text/html' })
+                res.end(`
+                  <html>
+                    <body style="font-family: system-ui; text-align: center; padding: 50px; background: #0a0a0a; color: #fff;">
+                      <h2>❌ Login Failed</h2>
+                      <p style="color: #888;">No token received. Please try again.</p>
+                    </body>
+                  </html>
+                `)
+                reject(new Error('No token received'))
+              }
+            } else {
+              res.writeHead(404)
+              res.end('Not found')
+            }
+          })
+
+          server.listen(0, () => {
+            const port = (server.address() as any).port
+            const callbackUrl = `http://localhost:${port}/callback`
+            const authUrl = `https://mcphosting.com/cli/auth?callback=${encodeURIComponent(callbackUrl)}`
+
+            spinner.text = 'Waiting for browser login...'
+
+            setTimeout(() => {
+              reject(new Error('Login timed out after 2 minutes. Try again.'))
+            }, 120000)
+
+            open(authUrl).catch(() => {
+              spinner.info('Could not open browser automatically.')
+              Logger.info(`Open this URL manually: ${chalk.blue(authUrl)}`)
+            })
+          })
+        })
+
+        const token = await authPromise
+        spinner.succeed('Login successful!')
+
+        config.token = token
+        const api = new MCPHostingAPI(token)
+        const user = await api.whoami()
+
+        if (user) {
+          config.user = user
+          Logger.success(`Logged in as ${chalk.bold(user.email)}`)
+        }
+
+        console.log('')
+        Logger.info(`Run ${chalk.cyan('mcphosting deploy')} to deploy your first MCP server!`)
+
+      } catch (error: any) {
+        spinner.fail('Login failed')
+        Logger.error(error.message)
+
+        console.log('')
+        Logger.info(`Alternative: ${chalk.cyan('mcphosting login --email you@example.com')}`)
+        process.exit(1)
+      } finally {
+        if (server) {
+          server.close()
+        }
+      }
+    })
+}

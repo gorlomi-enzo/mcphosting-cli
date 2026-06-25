@@ -1,8 +1,8 @@
-import { Command } from 'commander';
-import { MCPHostingAPI } from '../lib/api.js';
-import { Config } from '../lib/config.js';
-import { Logger } from '../lib/logger.js';
-import chalk from 'chalk';
+import { Command } from 'commander'
+import { MCPHostingAPI } from '../lib/api.js'
+import { Config } from '../lib/config.js'
+import { Logger } from '../lib/logger.js'
+import chalk from 'chalk'
 
 export function createSearchCommand(): Command {
   return new Command('search')
@@ -11,58 +11,50 @@ export function createSearchCommand(): Command {
     .option('--limit <number>', 'Maximum number of results', '10')
     .option('--json', 'Output as JSON')
     .action(async (query: string, options) => {
-      const config = new Config();
-      const api = new MCPHostingAPI(config.token);
-      const spinner = Logger.spinner(`Searching for "${query}"...`);
+      const config = new Config()
+      const api = new MCPHostingAPI(config.token)
+      const spinner = Logger.spinner(`Searching for "${query}"...`)
 
       try {
-        const results = await api.searchMCPs(query);
-        spinner.succeed(`Found ${results.length} MCP server(s)`);
+        const results = await api.searchMCPs(query)
+        spinner.succeed(`Found ${results.length} MCP server(s)`)
 
         if (results.length === 0) {
-          Logger.info('No MCP servers found matching your query');
-          Logger.dim('Try searching for: github, slack, notion, stripe, postgres, filesystem');
-          return;
+          Logger.info('No MCP servers found.')
+          Logger.dim('Try: github, slack, notion, stripe, postgres, filesystem')
+          return
         }
 
-        const limit = parseInt(options.limit);
-        const limitedResults = results.slice(0, limit);
+        const limit = parseInt(options.limit)
+        const limitedResults = results.slice(0, limit)
 
         if (options.json) {
-          Logger.json(limitedResults);
-          return;
+          Logger.json(limitedResults)
+          return
         }
 
-        console.log('');
-        Logger.bold(`🔍 MCP Marketplace Search Results`);
-        console.log('');
+        console.log('')
+        Logger.bold('🔍 Marketplace Results')
+        console.log('')
 
         limitedResults.forEach((server, index) => {
-          console.log(chalk.cyan(`${index + 1}. ${server.name}`));
-          console.log(`   ${chalk.dim(server.description)}`);
-          console.log(`   ${chalk.yellow('Slug:')} ${server.slug} | ${chalk.yellow('Installs:')} ${server.installs.toLocaleString()} | ${chalk.yellow('Author:')} ${server.author}`);
-          console.log(`   ${chalk.green('Tools:')} ${server.tools.join(', ')}`);
-          
-          if (server.url) {
-            console.log(`   ${chalk.blue('Connect:')} ${chalk.dim(`mcphost connect ${server.slug}`)}`);
-          }
-          
-          console.log('');
-        });
+          console.log(chalk.cyan(`${index + 1}. ${server.name}`))
+          console.log(`   ${chalk.dim(server.description)}`)
+          console.log(`   ${chalk.yellow('Slug:')} ${server.slug} | ${chalk.yellow('Installs:')} ${server.installs.toLocaleString()} | ${chalk.yellow('By:')} ${server.author}`)
+          console.log(`   ${chalk.green('Tools:')} ${server.tools.join(', ')}`)
+          console.log(`   ${chalk.blue('Connect:')} ${chalk.dim(`mcphosting connect ${server.slug}`)}`)
+          console.log('')
+        })
 
         if (results.length > limit) {
-          Logger.dim(`Showing ${limit} of ${results.length} results. Use --limit to see more.`);
+          Logger.dim(`Showing ${limit} of ${results.length}. Use --limit for more.`)
         }
-
-        Logger.info('Use `mcphost info <slug>` for detailed information');
-        Logger.info('Use `mcphost connect <slug>` to install');
-
-      } catch (error) {
-        spinner.fail('Search failed');
-        Logger.error(`Error: ${error}`);
-        process.exit(1);
+      } catch (error: any) {
+        spinner.fail('Search failed')
+        Logger.error(error.message)
+        process.exit(1)
       }
-    });
+    })
 }
 
 export function createInfoCommand(): Command {
@@ -71,65 +63,62 @@ export function createInfoCommand(): Command {
     .argument('<slug>', 'MCP server slug')
     .option('--json', 'Output as JSON')
     .action(async (slug: string, options) => {
-      const config = new Config();
-      const api = new MCPHostingAPI(config.token);
-      const spinner = Logger.spinner(`Getting info for ${slug}...`);
+      const config = new Config()
+      const api = new MCPHostingAPI(config.token)
+      const spinner = Logger.spinner(`Getting info for ${slug}...`)
 
       try {
-        const server = await api.getMCPInfo(slug);
-        
+        const server = await api.getMCPInfo(slug)
+
         if (!server) {
-          spinner.fail(`MCP server not found: ${slug}`);
-          Logger.info('Use `mcphost search <query>` to find servers');
-          return;
+          spinner.fail(`Not found: ${slug}`)
+          Logger.info(`Use ${chalk.cyan('mcphosting search <query>')} to find servers`)
+          return
         }
 
-        spinner.succeed('Found server info');
+        spinner.stop()
 
         if (options.json) {
-          Logger.json(server);
-          return;
+          Logger.json(server)
+          return
         }
 
-        console.log('');
-        console.log(chalk.bold.cyan(`📦 ${server.name}`));
-        console.log(chalk.dim(server.description));
-        console.log('');
+        console.log('')
+        console.log(chalk.bold.cyan(`📦 ${server.name}`))
+        console.log(chalk.dim(server.description))
+        console.log('')
 
-        const infoTable = [
+        const info = [
           { Property: 'Slug', Value: server.slug },
           { Property: 'Author', Value: server.author },
           { Property: 'Installs', Value: server.installs.toLocaleString() },
-          { Property: 'Tools', Value: server.tools.length.toString() }
-        ];
-
+          { Property: 'Tools', Value: server.tools.length.toString() },
+        ]
         if (server.url) {
-          infoTable.push({ Property: 'URL', Value: server.url });
+          info.push({ Property: 'URL', Value: server.url })
         }
 
-        Logger.table(infoTable);
+        Logger.table(info)
 
-        console.log('');
-        console.log(chalk.yellow('🔧 Available Tools:'));
-        server.tools.forEach(tool => {
-          console.log(`  • ${tool}`);
-        });
+        console.log('')
+        console.log(chalk.yellow('🔧 Available Tools:'))
+        server.tools.forEach(tool => console.log(`  • ${tool}`))
 
-        console.log('');
-        console.log(chalk.green('💡 Quick Start:'));
-        console.log(chalk.dim(`  mcphost connect ${server.slug}`));
+        console.log('')
+        console.log(chalk.green('💡 Quick Start:'))
+        console.log(chalk.dim(`  mcphosting connect ${server.slug}`))
 
-        // Check if already connected
-        const connection = config.findConnection(slug);
+        const connection = config.findConnection(slug)
         if (connection) {
-          console.log('');
-          console.log(chalk.blue('ℹ️  Already connected to:'), connection.clients.join(', '));
+          console.log('')
+          console.log(chalk.blue('ℹ️  Already connected to:'), connection.clients.join(', '))
         }
 
-      } catch (error) {
-        spinner.fail('Failed to get server info');
-        Logger.error(`Error: ${error}`);
-        process.exit(1);
+        console.log('')
+      } catch (error: any) {
+        spinner.fail('Failed to get info')
+        Logger.error(error.message)
+        process.exit(1)
       }
-    });
+    })
 }

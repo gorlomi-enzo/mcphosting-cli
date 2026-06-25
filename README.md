@@ -2,275 +2,155 @@
 
 [![npm version](https://badge.fury.io/js/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
 [![Downloads](https://img.shields.io/npm/dm/mcphosting-cli.svg)](https://www.npmjs.com/package/mcphosting-cli)
-[![GitHub stars](https://img.shields.io/github/stars/gorlomi-enzo/mcphosting-cli.svg)](https://github.com/gorlomi-enzo/mcphosting-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Connect AI agents to MCP servers. Browse, install, and manage Model Context Protocol servers.**
-
-The easiest way to connect MCP servers to Claude Desktop, ChatGPT, Cursor, VS Code, and other AI clients. One command to rule them all.
-
-![MCPHosting CLI Demo](https://github.com/gorlomi-enzo/mcphosting-cli/raw/main/assets/demo.gif)
-> *Animated demo coming soon - showing one-command MCP server connections*
+**Deploy MCP servers in 30 seconds.** The easiest way to host, connect, and manage Model Context Protocol servers.
 
 ## ⚡ Quick Start
 
 ```bash
-# Install globally
 npm install -g mcphosting-cli
 
-# Or run directly with npx
-npx mcphosting-cli connect github
+mcphosting login
+mcphosting deploy
+# Done. Your MCP server is live. 🚀
 ```
 
-## 🔗 How to Connect MCP Servers to AI Clients
+That's it. Three commands. Your MCP server is deployed and ready for Claude Desktop, Cursor, ChatGPT, and more.
 
-### How to Connect MCP Servers to Claude Desktop
+## 🚀 Deploy
 
-Claude Desktop is the most popular way to use MCP servers. Here's how to connect any MCP server:
+### Deploy from current directory
 
-1. **Install the CLI:**
-   ```bash
-   npm install -g mcphosting-cli
-   ```
-
-2. **Connect an MCP server:**
-   ```bash
-   mcphost connect github
-   ```
-
-3. **Restart Claude Desktop** to load the new MCP server
-
-The CLI automatically detects your Claude Desktop installation and updates the `claude_desktop_config.json` file with the MCP server configuration.
-
-**Manual Claude Desktop Setup:**
-If you prefer manual setup, edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "mcphosting-cli", "proxy", "https://github.mcphost.dev"],
-      "env": {}
-    }
-  }
-}
-```
-
-### How to Connect MCP Servers to ChatGPT
-
-ChatGPT Plus users can connect MCP servers through the web interface:
-
-1. **Get the MCP server URL:**
-   ```bash
-   mcphost info github  # Shows the server URL
-   ```
-
-2. **Add to ChatGPT:**
-   - Open ChatGPT in your browser
-   - Go to Settings → Apps → Connect an app
-   - Enter the MCP server URL (e.g., `https://github.mcphost.dev`)
-   - Follow the authorization prompts
-
-3. **Start using MCP tools** in your ChatGPT conversations
-
-### How to Connect MCP Servers to Cursor
-
-Cursor IDE supports MCP servers through configuration files:
-
-1. **Auto-connect with CLI:**
-   ```bash
-   mcphost connect notion --client cursor
-   ```
-
-2. **Manual Cursor setup:**
-   Create or edit `~/.cursor/mcp.json`:
-   ```json
-   {
-     "mcpServers": {
-       "notion": {
-         "command": "npx",
-         "args": ["-y", "mcphosting-cli", "proxy", "https://notion.mcphost.dev"],
-         "env": {}
-       }
-     }
-   }
-   ```
-
-3. **Restart Cursor** to load the MCP server
-
-## 📦 Available Commands
-
-### Connection Management
 ```bash
-mcphost connect <url-or-slug>           # Connect MCP server to all AI clients
-mcphost connect <url> --client claude   # Connect only to Claude Desktop
-mcphost disconnect <slug>               # Remove MCP connection
-mcphost list                           # List all connected MCP servers
+cd my-mcp-server
+mcphosting deploy
+```
+
+Auto-detects your MCP server (looks for `@modelcontextprotocol/sdk` in package.json) and deploys it.
+
+### Deploy from GitHub
+
+```bash
+mcphosting deploy --github https://github.com/user/my-mcp-server
+```
+
+### Deploy with options
+
+```bash
+mcphosting deploy --name "My MCP" --auth api_key
+mcphosting deploy --api-url https://my-existing-mcp.com/api
+```
+
+## 🔗 Connect
+
+Connect any MCP server to your AI clients with one command:
+
+```bash
+mcphosting connect github           # Connect GitHub MCP
+mcphosting connect notion           # Connect Notion MCP
+mcphosting connect https://my.mcp   # Connect custom server
+
+# Target specific client
+mcphosting connect slack --client claude
+mcphosting connect stripe --client cursor
+```
+
+Auto-detects Claude Desktop, Cursor, VS Code, and OpenClaw — configures all of them at once.
+
+## 📦 All Commands
+
+### Authentication
+
+```bash
+mcphosting login                    # Browser login (default)
+mcphosting login --email me@x.com   # Email/password login
+mcphosting login --token <token>    # Direct token auth
+mcphosting logout                   # Log out
+mcphosting whoami                   # Show current user
+```
+
+### Deployment & Management
+
+```bash
+mcphosting deploy                   # Deploy current directory
+mcphosting deploy --github <url>    # Deploy from GitHub
+mcphosting list                     # List all servers
+mcphosting status <slug>            # Check server status
+mcphosting logs <slug>              # View server logs
+mcphosting logs <slug> -n 100       # Last 100 log lines
+```
+
+### Environment Variables
+
+```bash
+mcphosting env list <slug>          # List env vars
+mcphosting env set <slug> KEY=val   # Set an env var
+mcphosting env remove <slug> KEY    # Remove an env var
+```
+
+### API Keys
+
+```bash
+mcphosting keys list                # List API keys
+mcphosting keys create "Prod Key"   # Create new key
+mcphosting keys delete <id>         # Delete a key
 ```
 
 ### Marketplace
+
 ```bash
-mcphost search <query>                 # Search MCP marketplace
-mcphost info <slug>                    # Get detailed MCP server info
+mcphosting search github            # Search marketplace
+mcphosting info notion              # Server details
+mcphosting connect <slug>           # Install to AI clients
+```
+
+### Connection Management
+
+```bash
+mcphosting connect <url-or-slug>    # Connect MCP to AI clients
+mcphosting disconnect <slug>        # Remove connection
+mcphosting list --local             # Show local connections
 ```
 
 ### Migration
+
 ```bash
-mcphost import --from smithery         # Import from Smithery CLI
-```
-
-### Authentication (Optional)
-```bash
-mcphost login                          # Login to MCPHosting
-mcphost logout                         # Logout
-mcphost whoami                         # Show current user
-```
-
-## 🌟 Featured MCP Servers
-
-| Server | Description | Tools | Connect |
-|--------|-------------|-------|---------|
-| **GitHub** | Access repositories, issues, PRs | `read_file`, `list_repos`, `create_issue` | `mcphost connect github` |
-| **Slack** | Send messages, manage workspaces | `send_message`, `list_channels` | `mcphost connect slack` |
-| **Notion** | Read/write pages and databases | `read_page`, `create_page`, `query_database` | `mcphost connect notion` |
-| **Stripe** | Payment and customer data | `get_customer`, `list_payments` | `mcphost connect stripe` |
-| **PostgreSQL** | Safe database queries | `query`, `describe_table`, `list_tables` | `mcphost connect postgres` |
-
-## 🚀 Why MCPHosting CLI?
-
-### MCPHosting CLI vs Manual Setup
-
-| Task | Manual Setup | MCPHosting CLI | Time Saved |
-|------|-------------|----------------|-----------|
-| **Find MCP servers** | Google, GitHub search | `mcphost search <query>` | ~30 min → 30 sec |
-| **Configure Claude** | Edit JSON files manually | `mcphost connect <server>` | ~10 min → 10 sec |
-| **Configure multiple clients** | Edit 3+ config files | One command updates all | ~30 min → 10 sec |
-| **Setup authentication** | Read docs, configure tokens | Automated prompts | ~20 min → 2 min |
-| **Update server URLs** | Edit JSON, restart clients | `mcphost update <server>` | ~10 min → 10 sec |
-| **Remove servers** | Edit JSON, clean configs | `mcphost disconnect <server>` | ~5 min → 5 sec |
-
-### MCPHosting CLI vs Smithery CLI
-
-| Feature | MCPHosting CLI | Smithery CLI | Manual Setup |
-|---------|----------------|--------------|--------------|
-| **Auto-detection** | ✅ Detects Claude, Cursor, VS Code | ❌ Manual config | ❌ Manual config |
-| **ChatGPT support** | ✅ Web setup instructions | ❌ Not supported | ❌ Complex setup |
-| **Marketplace** | ✅ 250+ servers built-in | ❌ Limited discovery | ❌ No discovery |
-| **Multiple clients** | ✅ Connect to all at once | ❌ One at a time | ❌ One at a time |
-| **Migration path** | ✅ `import --from smithery` | N/A | N/A |
-| **Revenue sharing** | ✅ 80% to creators | ❌ No monetization | N/A |
-| **Hosting included** | ✅ Free tier available | ❌ Self-host only | ❌ Self-host only |
-
-**Migration from Smithery:**
-```bash
-mcphost import --from smithery  # Seamless migration
+mcphosting import --from smithery   # Import from Smithery
 ```
 
 ## 🎯 Supported AI Clients
 
-| Client | Status | Auto-Detection | Config Location |
-|--------|--------|----------------|-----------------|
-| **Claude Desktop** | ✅ Full support | ✅ Automatic | `~/Library/Application Support/Claude/` |
-| **ChatGPT Plus** | ✅ Web setup | N/A | Web interface |
-| **Cursor** | ✅ Full support | ✅ Automatic | `~/.cursor/mcp.json` |
-| **VS Code** | ✅ Full support | ✅ Automatic | `.vscode/mcp.json` |
-| **OpenClaw** | ✅ Full support | ✅ Automatic | `~/.openclaw/mcp.json` |
-
-## 🔧 Examples
-
-**Connect GitHub MCP to all clients:**
-```bash
-mcphost connect github
-# 🎉 Connected! Share with your team:
-# npx mcphosting-cli connect github
-# 
-# ⭐ Star us: https://github.com/gorlomi-enzo/mcphosting-cli
-```
-
-**Connect custom MCP server:**
-```bash
-mcphost connect https://my-custom-mcp.example.com
-```
-
-**Search for MCP servers:**
-```bash
-mcphost search "database"
-mcphost search "slack"
-mcphost info notion
-```
-
-**Import from Smithery:**
-```bash
-mcphost import --from smithery --dry-run  # Preview what will be imported
-mcphost import --from smithery            # Actually import
-```
-
-**List connections:**
-```bash
-mcphost list
-# 📋 Connected MCP Servers (3)
-# 
-# Slug    | URL                          | Clients           | Added
-# github  | https://github.mcphost.dev   | claude, cursor    | 12/1/2024
-# slack   | https://slack.mcphost.dev    | claude            | 12/1/2024
-# notion  | https://notion.mcphost.dev   | claude, cursor    | 12/1/2024
-```
+| Client | Auto-Config | Location |
+|--------|:-----------:|----------|
+| Claude Desktop | ✅ | `~/Library/Application Support/Claude/` |
+| Cursor | ✅ | `~/.cursor/mcp.json` |
+| VS Code | ✅ | `.vscode/mcp.json` |
+| OpenClaw | ✅ | `~/.openclaw/mcp.json` |
+| ChatGPT | 📋 | Web setup instructions |
 
 ## 🏗️ How It Works
 
-1. **URL Resolution:** Slugs like `github` become `https://github.mcphost.dev`
-2. **Client Detection:** Automatically finds Claude Desktop, Cursor, VS Code configs
-3. **Config Update:** Adds MCP server entry to each client's config file
-4. **Proxy Mode:** Uses `npx mcphosting-cli proxy <url>` for STDIO communication
+1. **`mcphosting login`** — Authenticates with MCPHosting.com
+2. **`mcphosting deploy`** — Detects your MCP server, deploys to cloud
+3. **`mcphosting connect`** — Configures your AI clients to use the server
+4. **Proxy mode** — `npx mcphosting-cli proxy <url>` bridges STDIO ↔ HTTP
 
-**Config Format:**
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "mcphosting-cli", "proxy", "https://github.mcphost.dev"],
-      "env": {}
-    }
-  }
-}
-```
+Your deployed server gets a URL like `https://your-server.mcphost.dev` that works with any MCP client.
 
-## 🔒 Security & Privacy
+## 🔒 Security
 
-- **No data collection** during MCP proxying
-- **Open source** - audit the code yourself
-- **Local config** - your connections stored in `~/.mcphosting/`
-- **Optional auth** - marketplace features only
+- Credentials stored locally in `~/.config/mcphosting/`
+- No data collection during proxy
+- Open source — audit the code
+- Optional auth — marketplace browsing works without login
 
-## 📚 Documentation
+## 📚 Links
 
-- [Getting Started Guide](https://mcphosting.com/docs/getting-started)
-- [MCP Server Development](https://mcphosting.com/docs/development)
-- [API Reference](https://mcphosting.com/docs/api)
-- [Troubleshooting](https://mcphosting.com/docs/troubleshooting)
+- [Documentation](https://mcphosting.com/docs)
+- [Dashboard](https://mcphosting.com/dashboard)
+- [GitHub](https://github.com/gorlomi-enzo/mcphosting-cli)
 
-## 🤝 Contributing
+## License
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b my-feature`
-3. Commit changes: `git commit -am 'Add feature'`
-4. Push to branch: `git push origin my-feature`
-5. Submit a Pull Request
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=gorlomi-enzo/mcphosting-cli&type=Date)](https://star-history.com/#gorlomi-enzo/mcphosting-cli&Date)
-
----
-
-**Made with ❤️ by [MCPHosting](https://mcphosting.com)**
-
-[⭐ Star us on GitHub](https://github.com/gorlomi-enzo/mcphosting-cli) • [🐦 Follow on Twitter](https://twitter.com/mcphosting) • [💬 Join Discord](https://discord.gg/mcphosting)
+MIT

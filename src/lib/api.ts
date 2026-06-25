@@ -1,82 +1,239 @@
-import { MCPServer } from '../types.js';
+import axios, { AxiosError } from 'axios'
+import { MCPServer, DeployResult, ServerProject, APIKey, LogEntry } from '../types.js'
+
+const API_BASE = process.env.MCPHOSTING_API_URL || 'https://mcphosting.com'
 
 export class MCPHostingAPI {
-  private baseUrl = 'https://mcphosting.com/api';
-  private token?: string;
+  private token: string | null = null
 
   constructor(token?: string) {
-    this.token = token;
+    this.token = token || null
   }
 
-  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
-    // For MVP, always throw to use static fallback
-    // In production, this would make actual HTTP requests
-    throw new Error(`API not available - using static fallback`);
-    
-    // Commented out for MVP - uncomment for production API calls
-    /*
-    const url = `${this.baseUrl}${endpoint}`;
-    const headers: Record<string, string> = {
+  setToken(token: string) {
+    this.token = token
+  }
+
+  private get headers(): Record<string, string> {
+    const h: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers as Record<string, string>
-    };
-
+      'User-Agent': 'mcphosting-cli/1.0.0',
+    }
     if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
+      h['Authorization'] = `Bearer ${this.token}`
     }
-
-    const response = await fetch(url, {
-      ...options,
-      headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
-
-    return await response.json();
-    */
+    return h
   }
+
+  private handleError(error: unknown): never {
+    if (error instanceof AxiosError) {
+      const status = error.response?.status
+      const message = error.response?.data?.error || error.response?.data?.message || error.message
+
+      if (status === 401) {
+        throw new Error('Authentication required. Run `mcphosting login` first.')
+      }
+      if (status === 403) {
+        throw new Error('Access denied. Check your permissions.')
+      }
+      if (status === 404) {
+        throw new Error('Not found. Check the server slug or ID.')
+      }
+      if (status === 429) {
+        throw new Error('Rate limited. Please wait a moment and try again.')
+      }
+      throw new Error(`API error (${status}): ${message}`)
+    }
+    throw error
+  }
+
+  // --- Auth ---
+
+  async login(email: string, password: string): Promise<{ token: string; user: { email: string } }> {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/auth/cli-login`, { email, password })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async whoami(): Promise<{ email: string; org?: string } | null> {
+    if (!this.token) return null
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/auth/whoami`, { headers: this.headers })
+      return data.user || null
+    } catch {
+      return null
+    }
+  }
+
+  // --- Deploy ---
+
+  async deploy(params: {
+    name: string
+    githubUrl?: string
+    baseApiUrl?: string
+    authType?: 'none' | 'api_key' | 'oauth'
+    envVars?: Record<string, string>
+  }): Promise<DeployResult> {
+    try {
+      // If GitHub URL, use GitHub deploy
+      if (params.githubUrl) {
+        const { data } = await axios.post(`${API_BASE}/api/cli/github/deploy`, {
+          repo_url: params.githubUrl,
+          auto_detect: true,
+        }, { headers: this.headers })
+        return data
+      }
+
+      // Otherwise use regular deploy
+      const { data } = await axios.post(`${API_BASE}/api/cli/deploy`, params, { headers: this.headers })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- Server Management ---
+
+  async listServers(): Promise<ServerProject[]> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/mcp/projects`, { headers: this.headers })
+      return data.projects || []
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async getServer(idOrSlug: string): Promise<ServerProject> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/mcp/projects/${idOrSlug}`, { headers: this.headers })
+      return data.project || data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async getServerLogs(idOrSlug: string, lines: number = 50): Promise<LogEntry[]> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/mcp/projects/${idOrSlug}/logs?lines=${lines}`, { headers: this.headers })
+      return data.logs || []
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- Connection Info ---
+
+  async connect(slug: string): Promise<any> {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/mcp/connect`, { slug }, { headers: this.headers })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async getConnectionInfo(slug: string): Promise<any> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/cli/info/${slug}`, { headers: this.headers })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- Env Vars ---
+
+  async listEnvVars(projectId: string): Promise<{ key: string; masked: boolean }[]> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/mcp/projects/${projectId}/env-vars`, { headers: this.headers })
+      return data.envVars || []
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async addEnvVar(projectId: string, key: string, value: string): Promise<void> {
+    try {
+      await axios.post(
+        `${API_BASE}/api/mcp/projects/${projectId}/env-vars`,
+        { key, value },
+        { headers: this.headers }
+      )
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async removeEnvVar(projectId: string, key: string): Promise<void> {
+    try {
+      await axios.delete(
+        `${API_BASE}/api/mcp/projects/${projectId}/env-vars/${key}`,
+        { headers: this.headers }
+      )
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- API Keys ---
+
+  async getAPIKeys(): Promise<APIKey[]> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/keys`, { headers: this.headers })
+      return data.keys || []
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async createAPIKey(name: string): Promise<APIKey> {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/keys`, { name }, { headers: this.headers })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async deleteAPIKey(id: string): Promise<void> {
+    try {
+      await axios.delete(`${API_BASE}/api/keys/${id}`, { headers: this.headers })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- Marketplace (static fallback for MVP) ---
 
   async searchMCPs(query: string): Promise<MCPServer[]> {
     try {
-      const results = await this.request(`/marketplace/search?q=${encodeURIComponent(query)}`);
-      return results.mcps || [];
-    } catch (error) {
-      // Always fallback to static data for now
-      const staticMCPs = this.getStaticMCPs();
-      return staticMCPs.filter(mcp => 
+      const { data } = await axios.get(`${API_BASE}/api/marketplace/search?q=${encodeURIComponent(query)}`, { headers: this.headers })
+      return data.mcps || []
+    } catch {
+      // Fallback to static data
+      const staticMCPs = this.getStaticMCPs()
+      return staticMCPs.filter(mcp =>
         mcp.name.toLowerCase().includes(query.toLowerCase()) ||
         mcp.description.toLowerCase().includes(query.toLowerCase()) ||
         mcp.tools.some(tool => tool.toLowerCase().includes(query.toLowerCase()))
-      );
+      )
     }
   }
 
   async getMCPInfo(slug: string): Promise<MCPServer | null> {
     try {
-      const result = await this.request(`/marketplace/mcp/${slug}`);
-      return result.mcp || null;
+      const { data } = await axios.get(`${API_BASE}/api/marketplace/mcp/${slug}`, { headers: this.headers })
+      return data.mcp || null
     } catch {
-      // Fallback to static data
-      const staticMCPs = this.getStaticMCPs();
-      return staticMCPs.find(mcp => mcp.slug === slug) || null;
-    }
-  }
-
-  async whoami(): Promise<{ email: string; org?: string } | null> {
-    if (!this.token) return null;
-    
-    try {
-      const result = await this.request('/auth/whoami');
-      return result.user;
-    } catch {
-      return null;
+      const staticMCPs = this.getStaticMCPs()
+      return staticMCPs.find(mcp => mcp.slug === slug) || null
     }
   }
 
   private getStaticMCPs(): MCPServer[] {
-    // Curated list of popular MCP servers for fallback
     return [
       {
         slug: 'github',
@@ -91,7 +248,7 @@ export class MCPHostingAPI {
         slug: 'slack',
         name: 'Slack MCP',
         description: 'Send messages and manage Slack workspaces',
-        url: 'https://slack.mcphost.dev', 
+        url: 'https://slack.mcphost.dev',
         tools: ['send_message', 'list_channels', 'get_history'],
         installs: 8930,
         author: 'MCPHosting'
@@ -132,6 +289,6 @@ export class MCPHostingAPI {
         installs: 18950,
         author: 'MCPHosting'
       }
-    ];
+    ]
   }
 }
