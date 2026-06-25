@@ -1,5 +1,5 @@
 {
-  "name": "@gorlomi/mcphosting-cli",
+  "name": "@mcphosting/cli",
   "version": "1.0.0",
   "description": "Deploy and manage MCP servers from the terminal. The easiest way to host MCP servers.",
   "bin": {
