@@ -80,27 +80,25 @@ program.configureHelp({
 })
 
 program.addHelpText('after', `
-${chalk.bold('Quick Start (one command!):')}
-  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login --github')}                     ${chalk.dim('Login with GitHub (recommended)')}
-  ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy --template weather')}          ${chalk.dim('Deploy a template')}
-  ${chalk.dim('   ')} ${chalk.dim('Done! URL returned. API key created. Config ready.')}
+${chalk.bold('Quick Start:')}
+  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login')}                         ${chalk.dim('Authenticate')}
+  ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy --template crypto')}      ${chalk.dim('Deploy from template')}
+  ${chalk.dim('3.')} ${chalk.cyan('mcphosting connect crypto-portfolio')}      ${chalk.dim('Connect to AI clients')}
 
-${chalk.bold('Deploy Options:')}
-  ${chalk.cyan('mcphosting deploy')}                              ${chalk.dim('Deploy from current directory')}
-  ${chalk.cyan('mcphosting deploy --template crypto')}            ${chalk.dim('Deploy from template')}
-  ${chalk.cyan('mcphosting deploy --github <url>')}               ${chalk.dim('Deploy from GitHub repo')}
-  ${chalk.cyan('mcphosting deploy --api-url <url>')}              ${chalk.dim('Register external server')}
-  ${chalk.cyan('mcphosting deploy --configure')}                  ${chalk.dim('Auto-configure AI clients')}
-
-${chalk.bold('Templates:')}
-  ${chalk.cyan('weather')}  ${chalk.cyan('crypto')}  ${chalk.cyan('notion')}  ${chalk.cyan('postgres')}  ${chalk.cyan('blank')}
+${chalk.bold('Templates (deploy in 60 seconds):')}
+  ${chalk.cyan('mcphosting deploy --template')}                   ${chalk.dim('List all templates')}
+  ${chalk.cyan('mcphosting deploy --template crypto')}            ${chalk.dim('Crypto prices (CoinGecko)')}
+  ${chalk.cyan('mcphosting deploy --template runescape')}         ${chalk.dim('OSRS Grand Exchange')}
+  ${chalk.cyan('mcphosting deploy --template property')}          ${chalk.dim('Real estate search')}
+  ${chalk.cyan('mcphosting deploy --template casino')}            ${chalk.dim('Casino bonus comparison')}
+  ${chalk.cyan('mcphosting deploy --template status')}            ${chalk.dim('Game server status')}
 
 ${chalk.bold('More Commands:')}
-  ${chalk.cyan('mcphosting init')}                                ${chalk.dim('Create mcphosting.json')}
+  ${chalk.cyan('mcphosting deploy')}                              ${chalk.dim('Deploy current directory')}
+  ${chalk.cyan('mcphosting deploy --github <url>')}               ${chalk.dim('Deploy from GitHub')}
   ${chalk.cyan('mcphosting connect <slug>')}                      ${chalk.dim('Connect MCP to AI clients')}
   ${chalk.cyan('mcphosting list')}                                ${chalk.dim('List all servers')}
   ${chalk.cyan('mcphosting status <server>')}                     ${chalk.dim('Check server status')}
-  ${chalk.cyan('mcphosting keys create "Key Name"')}              ${chalk.dim('Create API key')}
   ${chalk.cyan('mcphosting search <query>')}                      ${chalk.dim('Search marketplace')}
 
 ${chalk.bold('Supported AI Clients:')}
