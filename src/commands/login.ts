@@ -39,14 +39,106 @@ function prompt(question: string, hidden: boolean = false): Promise<string> {
   })
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function loginWithGitHub(config: Config): Promise<void> {
+  const api = new MCPHostingAPI()
+  const spinner = Logger.spinner('Starting GitHub login...')
+
+  try {
+    // Step 1: Start device flow
+    const deviceFlow = await api.githubDeviceStart()
+    spinner.stop()
+
+    // Step 2: Show the code to the user
+    console.log('')
+    console.log(chalk.bold('  🔐 GitHub Login'))
+    console.log('')
+    console.log(`  ${chalk.dim('1.')} Open ${chalk.cyan.underline(deviceFlow.verification_uri)}`)
+    console.log(`  ${chalk.dim('2.')} Enter code: ${chalk.bold.yellow(deviceFlow.user_code)}`)
+    console.log('')
+
+    // Try to open browser automatically
+    try {
+      await open(deviceFlow.verification_uri)
+      Logger.dim('  Browser opened automatically.')
+    } catch {
+      Logger.dim('  Open the URL above in your browser.')
+    }
+
+    console.log('')
+    const pollSpinner = Logger.spinner('Waiting for GitHub authorization...')
+
+    // Step 3: Poll for completion
+    const pollInterval = (deviceFlow.interval || 5) * 1000
+    const maxAttempts = Math.ceil((deviceFlow.expires_in || 900) / (deviceFlow.interval || 5))
+    let currentInterval = pollInterval
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await sleep(currentInterval)
+
+      const result = await api.githubDevicePoll(deviceFlow.device_code)
+
+      if (result.token && result.user) {
+        // Success!
+        config.token = result.token
+        config.user = { email: result.user.email, org: result.user.github_username }
+
+        pollSpinner.succeed(
+          result.is_new_user
+            ? `Account created and logged in as ${chalk.bold(result.user.github_username || result.user.email)}`
+            : `Logged in as ${chalk.bold(result.user.github_username || result.user.email)}`
+        )
+
+        console.log('')
+        Logger.info(`Token stored in ${chalk.dim('~/.config/mcphosting/')}`)
+        Logger.info(`Run ${chalk.cyan('mcphosting deploy')} to deploy your first MCP server!`)
+        return
+      }
+
+      if (result.error === 'authorization_pending') {
+        continue // Still waiting
+      }
+
+      if (result.error === 'slow_down') {
+        // GitHub wants us to slow down
+        currentInterval = (result.interval || 10) * 1000
+        continue
+      }
+
+      // Any other error
+      pollSpinner.fail('GitHub login failed')
+      Logger.error(result.error || 'Unknown error during GitHub authorization')
+      process.exit(1)
+    }
+
+    pollSpinner.fail('GitHub login timed out')
+    Logger.error('Authorization expired. Please try again.')
+    process.exit(1)
+  } catch (error: any) {
+    spinner.fail('GitHub login failed')
+    Logger.error(error.message || 'Failed to start GitHub device flow')
+    process.exit(1)
+  }
+}
+
 export function createLoginCommand(): Command {
   return new Command('login')
     .description('Authenticate with MCPHosting')
     .option('--email <email>', 'Email address')
     .option('--token <token>', 'Provide API token directly')
-    .option('--browser', 'Use browser-based login (default if no email provided)')
+    .option('--github', 'Login with GitHub (recommended)')
+    .option('--browser', 'Use browser-based login')
     .action(async (options) => {
       const config = new Config()
+
+      // GitHub OAuth login (recommended)
+      if (options.github) {
+        await loginWithGitHub(config)
+        return
+      }
 
       // Direct token auth
       if (options.token) {
@@ -94,7 +186,25 @@ export function createLoginCommand(): Command {
         return
       }
 
-      // Browser-based OAuth flow (default for TTY)
+      // Interactive: show login options for TTY
+      if (process.stdout.isTTY) {
+        console.log('')
+        console.log(chalk.bold('  🚀 MCPHosting Login'))
+        console.log('')
+        console.log(`  ${chalk.cyan('mcphosting login --github')}     ${chalk.dim('Login with GitHub (recommended)')}`)
+        console.log(`  ${chalk.cyan('mcphosting login --email')}      ${chalk.dim('Login with email/password')}`)
+        console.log(`  ${chalk.cyan('mcphosting login --browser')}    ${chalk.dim('Login via browser')}`)
+        console.log(`  ${chalk.cyan('mcphosting login --token')}      ${chalk.dim('Use existing API token')}`)
+        console.log('')
+
+        // Default to GitHub login
+        Logger.info('Starting GitHub login (use --email for email/password)...')
+        console.log('')
+        await loginWithGitHub(config)
+        return
+      }
+
+      // Browser-based OAuth flow (fallback)
       const spinner = Logger.spinner('Opening browser for login...')
       let server: any
 
@@ -172,7 +282,7 @@ export function createLoginCommand(): Command {
         Logger.error(error.message)
 
         console.log('')
-        Logger.info(`Alternative: ${chalk.cyan('mcphosting login --email you@example.com')}`)
+        Logger.info(`Alternative: ${chalk.cyan('mcphosting login --github')}`)
         process.exit(1)
       } finally {
         if (server) {

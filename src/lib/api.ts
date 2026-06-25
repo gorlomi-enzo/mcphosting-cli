@@ -58,6 +58,40 @@ export class MCPHostingAPI {
     }
   }
 
+  async githubDeviceStart(): Promise<{
+    device_code: string
+    user_code: string
+    verification_uri: string
+    expires_in: number
+    interval: number
+  }> {
+    try {
+      const { data } = await axios.get(`${API_BASE}/api/auth/github/device`)
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async githubDevicePoll(deviceCode: string): Promise<{
+    token?: string
+    user?: { email: string; github_username?: string }
+    is_new_user?: boolean
+    error?: string
+    interval?: number
+  }> {
+    try {
+      const { data } = await axios.post(
+        `${API_BASE}/api/auth/github/device`,
+        { device_code: deviceCode },
+        { validateStatus: (status) => status < 500 } // Don't throw on 202/400
+      )
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
   async whoami(): Promise<{ email: string; org?: string } | null> {
     if (!this.token) return null
     try {
@@ -173,6 +207,27 @@ export class MCPHostingAPI {
         `${API_BASE}/api/mcp/projects/${projectId}/env-vars/${key}`,
         { headers: this.headers }
       )
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  // --- One-Click Deploy ---
+
+  async oneClickDeploy(params: {
+    name: string
+    slug?: string
+    githubUrl?: string
+    baseApiUrl?: string
+    template?: string
+    authType?: 'none' | 'api_key' | 'oauth'
+    envVars?: { key: string; value: string }[]
+    autoKey?: boolean
+    vercelProjectUrl?: string
+  }): Promise<OneClickDeployResult> {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/cli/deploy/one-click`, params, { headers: this.headers })
+      return data
     } catch (error) {
       this.handleError(error)
     }

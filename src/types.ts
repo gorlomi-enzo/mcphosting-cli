@@ -98,3 +98,28 @@ export interface LogEntry {
   level: 'info' | 'warn' | 'error' | 'debug'
   message: string
 }
+
+export interface OneClickDeployResult {
+  ok: boolean
+  projectId: string
+  slug: string
+  name: string
+  connectionUrl: string
+  sseUrl?: string
+  streamableUrl?: string
+  status: string
+  apiKey?: {
+    id: string
+    name: string
+    key: string
+    prefix: string
+  }
+  githubRepoUrl?: string
+  template?: string
+  vercelDeployUrl?: string
+  clientConfig: {
+    claude: Record<string, any>
+    cursor: Record<string, any>
+    openclaw: Record<string, any>
+  }
+}

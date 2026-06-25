@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import { createLoginCommand } from './commands/login.js'
 import { createLogoutCommand } from './commands/logout.js'
 import { createDeployCommand } from './commands/deploy.js'
+import { createInitCommand } from './commands/init.js'
 import { createConnectCommand, createDisconnectCommand } from './commands/connect.js'
 import { createListCommand } from './commands/list.js'
 import { createStatusCommand } from './commands/status.js'
@@ -31,6 +32,7 @@ program
 program.addCommand(createLoginCommand())
 program.addCommand(createLogoutCommand())
 program.addCommand(createDeployCommand())
+program.addCommand(createInitCommand())
 program.addCommand(createConnectCommand())
 program.addCommand(createDisconnectCommand())
 program.addCommand(createListCommand())
@@ -78,22 +80,28 @@ program.configureHelp({
 })
 
 program.addHelpText('after', `
-${chalk.bold('Quick Start:')}
-  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login')}                         ${chalk.dim('Authenticate')}
-  ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy')}                        ${chalk.dim('Deploy MCP server from current dir')}
-  ${chalk.dim('3.')} ${chalk.cyan('mcphosting deploy --github <url>')}         ${chalk.dim('Deploy from GitHub')}
+${chalk.bold('Quick Start (one command!):')}
+  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login')}                              ${chalk.dim('Authenticate')}
+  ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy --template weather')}          ${chalk.dim('Deploy a template')}
+  ${chalk.dim('   ')} ${chalk.dim('Done! URL returned. API key created. Config ready.')}
 
-${chalk.bold('Examples:')}
-  ${chalk.cyan('mcphosting deploy')}                              ${chalk.dim('Deploy current directory')}
-  ${chalk.cyan('mcphosting deploy --github https://github.com/user/my-mcp')}
-  ${chalk.cyan('mcphosting connect github')}                      ${chalk.dim('Connect GitHub MCP to AI clients')}
+${chalk.bold('Deploy Options:')}
+  ${chalk.cyan('mcphosting deploy')}                              ${chalk.dim('Deploy from current directory')}
+  ${chalk.cyan('mcphosting deploy --template crypto')}            ${chalk.dim('Deploy from template')}
+  ${chalk.cyan('mcphosting deploy --github <url>')}               ${chalk.dim('Deploy from GitHub repo')}
+  ${chalk.cyan('mcphosting deploy --api-url <url>')}              ${chalk.dim('Register external server')}
+  ${chalk.cyan('mcphosting deploy --configure')}                  ${chalk.dim('Auto-configure AI clients')}
+
+${chalk.bold('Templates:')}
+  ${chalk.cyan('weather')}  ${chalk.cyan('crypto')}  ${chalk.cyan('notion')}  ${chalk.cyan('postgres')}  ${chalk.cyan('blank')}
+
+${chalk.bold('More Commands:')}
+  ${chalk.cyan('mcphosting init')}                                ${chalk.dim('Create mcphosting.json')}
+  ${chalk.cyan('mcphosting connect <slug>')}                      ${chalk.dim('Connect MCP to AI clients')}
   ${chalk.cyan('mcphosting list')}                                ${chalk.dim('List all servers')}
-  ${chalk.cyan('mcphosting status my-server')}                    ${chalk.dim('Check server status')}
-  ${chalk.cyan('mcphosting logs my-server')}                      ${chalk.dim('View server logs')}
-  ${chalk.cyan('mcphosting env set my-server API_KEY=sk-abc')}    ${chalk.dim('Set env var')}
-  ${chalk.cyan('mcphosting keys create "Production"')}            ${chalk.dim('Create API key')}
-  ${chalk.cyan('mcphosting search notion')}                       ${chalk.dim('Search marketplace')}
-  ${chalk.cyan('mcphosting import --from smithery')}              ${chalk.dim('Import from Smithery')}
+  ${chalk.cyan('mcphosting status <server>')}                     ${chalk.dim('Check server status')}
+  ${chalk.cyan('mcphosting keys create "Key Name"')}              ${chalk.dim('Create API key')}
+  ${chalk.cyan('mcphosting search <query>')}                      ${chalk.dim('Search marketplace')}
 
 ${chalk.bold('Supported AI Clients:')}
   • ${chalk.green('Claude Desktop')}  • ${chalk.green('Cursor')}  • ${chalk.green('VS Code')}  • ${chalk.green('OpenClaw')}  • ${chalk.green('ChatGPT')}
