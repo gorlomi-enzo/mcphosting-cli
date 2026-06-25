@@ -81,7 +81,7 @@ program.configureHelp({
 
 program.addHelpText('after', `
 ${chalk.bold('Quick Start (one command!):')}
-  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login')}                              ${chalk.dim('Authenticate')}
+  ${chalk.dim('1.')} ${chalk.cyan('mcphosting login --github')}                     ${chalk.dim('Login with GitHub (recommended)')}
   ${chalk.dim('2.')} ${chalk.cyan('mcphosting deploy --template weather')}          ${chalk.dim('Deploy a template')}
   ${chalk.dim('   ')} ${chalk.dim('Done! URL returned. API key created. Config ready.')}
 

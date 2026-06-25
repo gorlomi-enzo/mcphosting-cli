@@ -11,7 +11,7 @@
 ```bash
 npm install -g mcphosting-cli
 
-mcphosting login
+mcphosting login --github    # Login with GitHub (recommended)
 mcphosting deploy
 # Done. Your MCP server is live. 🚀
 ```
@@ -63,9 +63,11 @@ Auto-detects Claude Desktop, Cursor, VS Code, and OpenClaw — configures all of
 ### Authentication
 
 ```bash
-mcphosting login                    # Browser login (default)
+mcphosting login                    # GitHub login (default, recommended)
+mcphosting login --github           # Explicit GitHub login
 mcphosting login --email me@x.com   # Email/password login
 mcphosting login --token <token>    # Direct token auth
+mcphosting login --browser          # Browser-based login
 mcphosting logout                   # Log out
 mcphosting whoami                   # Show current user
 ```
