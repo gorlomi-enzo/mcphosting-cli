@@ -131,8 +131,27 @@ export function createLoginCommand(): Command {
     .option('--token <token>', 'Provide API token directly')
     .option('--github', 'Login with GitHub (recommended)')
     .option('--browser', 'Use browser-based login')
+    .option('--json', 'Output as JSON')
     .action(async (options) => {
       const config = new Config()
+      const isJson = options.json || Logger.isJsonMode
+
+      // Check env var auth first
+      if (process.env.MCPHOSTING_TOKEN && !options.token && !options.github && !options.email) {
+        const api = new MCPHostingAPI(process.env.MCPHOSTING_TOKEN)
+        const user = await api.whoami()
+        if (isJson) {
+          console.log(JSON.stringify({
+            success: true,
+            email: user?.email || 'unknown',
+            token_source: 'environment',
+          }))
+        } else {
+          Logger.success(`Authenticated via MCPHOSTING_TOKEN env var`)
+          if (user) Logger.info(`  User: ${chalk.bold(user.email)}`)
+        }
+        return
+      }
 
       // GitHub OAuth login (recommended)
       if (options.github) {
@@ -148,11 +167,35 @@ export function createLoginCommand(): Command {
 
         if (user) {
           config.user = user
-          Logger.success(`Logged in as ${chalk.bold(user.email)}`)
+          if (isJson) {
+            console.log(JSON.stringify({ success: true, email: user.email }))
+          } else {
+            Logger.success(`Logged in as ${chalk.bold(user.email)}`)
+          }
         } else {
-          Logger.warning('Token saved, but could not verify identity.')
+          if (isJson) {
+            console.log(JSON.stringify({ success: true, warning: 'Token saved but could not verify identity' }))
+          } else {
+            Logger.warning('Token saved, but could not verify identity.')
+          }
         }
         return
+      }
+
+      // Non-TTY without explicit auth method: error gracefully
+      if (!process.stdin.isTTY && !options.email) {
+        if (isJson) {
+          console.log(JSON.stringify({
+            success: false,
+            error: 'Interactive login requires a TTY. Use --token or MCPHOSTING_TOKEN env var for scripted usage.',
+          }))
+        } else {
+          Logger.error('Interactive login requires a TTY.')
+          Logger.info('Use one of:')
+          Logger.dim(`  ${chalk.cyan('mcphosting login --token <token>')}`)
+          Logger.dim(`  ${chalk.cyan('export MCPHOSTING_TOKEN=<token>')}`)
+        }
+        process.exit(1)
       }
 
       // Email/password login

@@ -9,6 +9,7 @@ export function createStatusCommand(): Command {
     .argument('<slug-or-id>', 'Server slug or ID')
     .option('--json', 'Output as JSON')
     .action(async (slugOrId: string, options) => {
+      const isJson = options.json || Logger.isJsonMode
       const { api } = getAuthenticatedAPI()
       const spinner = Logger.spinner(`Checking status of ${chalk.cyan(slugOrId)}...`)
 
@@ -16,7 +17,7 @@ export function createStatusCommand(): Command {
         const server = await api.getServer(slugOrId)
         spinner.stop()
 
-        if (options.json) {
+        if (isJson) {
           Logger.json(server)
           return
         }

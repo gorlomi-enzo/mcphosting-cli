@@ -18,8 +18,11 @@ export class Config {
     })
   }
 
+  /**
+   * Token resolution: env var MCPHOSTING_TOKEN takes priority over config file.
+   */
   get token(): string | undefined {
-    return this.conf.get('token')
+    return process.env.MCPHOSTING_TOKEN || this.conf.get('token')
   }
 
   set token(value: string | undefined) {
@@ -40,6 +43,13 @@ export class Config {
     } else {
       this.conf.delete('user')
     }
+  }
+
+  /**
+   * Check if token came from environment variable.
+   */
+  get isEnvToken(): boolean {
+    return !!process.env.MCPHOSTING_TOKEN
   }
 
   get connections(): MCPConnection[] {

@@ -12,6 +12,7 @@ export function createListCommand(): Command {
     .option('--remote', 'Show deployed servers only (requires login)')
     .option('--json', 'Output as JSON')
     .action(async (options) => {
+      const isJson = options.json || Logger.isJsonMode
       // Default: show both local connections and remote servers
       const showLocal = options.local || (!options.local && !options.remote)
       const showRemote = options.remote || (!options.local && !options.remote)
@@ -22,7 +23,7 @@ export function createListCommand(): Command {
         const connections = config.connections
 
         if (connections.length > 0) {
-          if (options.json && !showRemote) {
+          if (isJson && !showRemote) {
             Logger.json(connections)
             return
           }
@@ -64,7 +65,7 @@ export function createListCommand(): Command {
             return
           }
 
-          if (options.json) {
+          if (isJson) {
             Logger.json(servers)
             return
           }

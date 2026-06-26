@@ -21,10 +21,14 @@ export function createDeployCommand(): Command {
     .option('--no-auto-key', 'Skip automatic API key creation')
     .option('--configure', 'Automatically configure detected AI clients', false)
     .option('--json', 'Output result as JSON')
+    .option('--silent', 'Suppress interactive output')
     .action(async (options) => {
+      const isJson = options.json || Logger.isJsonMode
+      const isSilent = options.silent || Logger.isSilent
+
       const { api, config } = getAuthenticatedAPI()
 
-      if (!options.json) {
+      if (!isJson && !isSilent) {
         console.log('')
         console.log(chalk.bold('🚀 MCPHosting Deploy'))
         console.log(chalk.dim('   One command. Your MCP server goes live.'))
@@ -57,7 +61,7 @@ export function createDeployCommand(): Command {
 
           spinner.succeed(`Template ${chalk.cyan(template)} deployed!`)
 
-          if (options.json) {
+          if (isJson) {
             Logger.json(result)
           } else {
             printOneClickResult(result, options.configure)
@@ -90,7 +94,7 @@ export function createDeployCommand(): Command {
 
           spinner.succeed('Deployed from GitHub!')
 
-          if (options.json) {
+          if (isJson) {
             Logger.json(result)
           } else {
             printOneClickResult(result, options.configure)
@@ -122,7 +126,7 @@ export function createDeployCommand(): Command {
 
           spinner.succeed('Registered successfully!')
 
-          if (options.json) {
+          if (isJson) {
             Logger.json(result)
           } else {
             printOneClickResult(result, options.configure)
@@ -227,7 +231,7 @@ export function createDeployCommand(): Command {
           }
         }
 
-        if (options.json) {
+        if (isJson) {
           Logger.json(result)
         } else {
           printOneClickResult(result, options.configure)
@@ -275,12 +279,11 @@ function printOneClickResult(result: any, showConfigureHint: boolean = false) {
     console.log(`     ${chalk.green(result.apiKey.key)}`)
   }
 
-  // Vercel deploy button
+  // Deployment URL (if provided by API)
   if (result.vercelDeployUrl) {
     console.log('')
-    console.log(chalk.bold('  ▲ Deploy to Vercel:'))
-    console.log(`     ${chalk.blue(result.vercelDeployUrl)}`)
-    console.log(chalk.dim('     Click the link above → Deploy → Your MCP server is live!'))
+    console.log(chalk.bold('  🌐 Hosted on mcphosting.com infrastructure'))
+    console.log(chalk.dim('     Your server is live and managed by MCPHosting.'))
   }
 
   // Client configs

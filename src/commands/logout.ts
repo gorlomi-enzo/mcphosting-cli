@@ -5,11 +5,17 @@ import { Logger } from '../lib/logger.js'
 export function createLogoutCommand(): Command {
   return new Command('logout')
     .description('Log out and remove stored credentials')
-    .action(() => {
+    .option('--json', 'Output as JSON')
+    .action((options) => {
       const config = new Config()
+      const isJson = options.json || Logger.isJsonMode
 
       if (!config.token) {
-        Logger.info('Already logged out.')
+        if (isJson) {
+          console.log(JSON.stringify({ success: true, message: 'Already logged out' }))
+        } else {
+          Logger.info('Already logged out.')
+        }
         return
       }
 
@@ -17,7 +23,9 @@ export function createLogoutCommand(): Command {
       config.token = undefined
       config.user = undefined
 
-      if (email) {
+      if (isJson) {
+        console.log(JSON.stringify({ success: true, email: email || undefined }))
+      } else if (email) {
         Logger.success(`Logged out from ${email}`)
       } else {
         Logger.success('Logged out successfully.')

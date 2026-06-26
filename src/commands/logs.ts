@@ -10,6 +10,7 @@ export function createLogsCommand(): Command {
     .option('-n, --lines <number>', 'Number of log lines to show', '50')
     .option('--json', 'Output as JSON')
     .action(async (slugOrId: string, options) => {
+      const isJson = options.json || Logger.isJsonMode
       const { api } = getAuthenticatedAPI()
       const lines = parseInt(options.lines)
       const spinner = Logger.spinner(`Fetching logs for ${chalk.cyan(slugOrId)}...`)
@@ -19,11 +20,15 @@ export function createLogsCommand(): Command {
         spinner.stop()
 
         if (logs.length === 0) {
-          Logger.info('No logs available yet.')
+          if (isJson) {
+            console.log(JSON.stringify({ success: true, logs: [] }))
+          } else {
+            Logger.info('No logs available yet.')
+          }
           return
         }
 
-        if (options.json) {
+        if (isJson) {
           Logger.json(logs)
           return
         }
