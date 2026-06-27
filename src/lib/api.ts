@@ -49,9 +49,18 @@ export class MCPHostingAPI {
 
   // --- Auth ---
 
-  async login(email: string, password: string): Promise<{ token: string; user: { email: string } }> {
+  async login(email: string, password: string): Promise<{ token: string; refresh_token: string; user: { email: string } }> {
     try {
       const { data } = await axios.post(`${API_BASE}/api/auth/cli-login`, { email, password })
+      return data
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  async refreshToken(refreshToken: string): Promise<{ token: string; refresh_token: string; user: { email: string } }> {
+    try {
+      const { data } = await axios.post(`${API_BASE}/api/auth/cli-login/refresh`, { refresh_token: refreshToken })
       return data
     } catch (error) {
       this.handleError(error)
@@ -75,6 +84,7 @@ export class MCPHostingAPI {
 
   async githubDevicePoll(deviceCode: string): Promise<{
     token?: string
+    refresh_token?: string
     user?: { email: string; github_username?: string }
     is_new_user?: boolean
     error?: string

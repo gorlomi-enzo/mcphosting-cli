@@ -26,6 +26,24 @@ export function createWhoamiCommand(): Command {
       const api = new MCPHostingAPI(token)
       const user = await api.whoami()
 
+      if (!user && token) {
+        // Token exists but API call failed — token is likely expired
+        if (options.json || Logger.isJsonMode) {
+          console.log(JSON.stringify({
+            success: false,
+            logged_in: false,
+            error: 'Token expired',
+            cached_email: config.user?.email,
+          }))
+        } else {
+          Logger.warning('Token expired. Run `mcphosting login` to re-authenticate.')
+          if (config.user?.email) {
+            Logger.dim(`  Cached email: ${config.user.email}`)
+          }
+        }
+        return
+      }
+
       const result = {
         success: true,
         logged_in: true,

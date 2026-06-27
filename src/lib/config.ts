@@ -33,6 +33,18 @@ export class Config {
     }
   }
 
+  get refreshToken(): string | undefined {
+    return this.conf.get('refresh_token' as any)
+  }
+
+  set refreshToken(value: string | undefined) {
+    if (value) {
+      this.conf.set('refresh_token' as any, value)
+    } else {
+      this.conf.delete('refresh_token' as any)
+    }
+  }
+
   get user() {
     return this.conf.get('user')
   }

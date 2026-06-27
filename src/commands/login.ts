@@ -84,6 +84,7 @@ async function loginWithGitHub(config: Config): Promise<void> {
       if (result.token && result.user) {
         // Success!
         config.token = result.token
+        config.refreshToken = result.refresh_token
         config.user = { email: result.user.email, org: result.user.github_username }
 
         pollSpinner.succeed(
@@ -215,6 +216,7 @@ export function createLoginCommand(): Command {
           const result = await api.login(email, password)
 
           config.token = result.token
+          config.refreshToken = result.refresh_token
           config.user = result.user
 
           spinner.succeed(`Logged in as ${chalk.bold(result.user.email)}`)
